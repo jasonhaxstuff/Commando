@@ -46,6 +46,9 @@ class Command {
 	 * @property {RegExp[]} [patterns] - Patterns to use for triggering the command
 	 * @property {boolean} [guarded=false] - Whether the command should be protected from disabling
 	 * @property {boolean} [hidden=false] - Whether the command should be hidden from the help command
+	 * @property {ActionInfo[]} [actions] - The actions (subcommands) of the command.
+	 * @property {Number} [actionPromptLimit=Infinity]
+	 * @property {Function} [defaultAction=this.run] - The function to be run when an action can't be found.
 	 */
 
 	/**
@@ -171,6 +174,8 @@ class Command {
 		 */
 		this.argsCollector = info.args && info.args.length ?
 			new ArgumentCollector(client, info.args, info.argsPromptLimit) :
+			info.actions && info.actions.length ?
+			new ArgumentCollector(client, info.actions, info.actionPromptLimit) :
 			null;
 		if(this.argsCollector && typeof info.format === 'undefined') {
 			this.format = this.argsCollector.args.reduce((prev, arg) => {
@@ -470,7 +475,9 @@ class Command {
 			}
 			if(info.throttling.duration < 1) throw new RangeError('Command throttling duration must be at least 1.');
 		}
+		if(info.args && info.actions) throw new TypeError('Command must not have args and actions.');
 		if(info.args && !Array.isArray(info.args)) throw new TypeError('Command args must be an Array.');
+		if(info.actions && !Array.isArray(info.actions)) throw new TypeError('Command actions must be an Array.');
 		if('argsPromptLimit' in info && typeof info.argsPromptLimit !== 'number') {
 			throw new TypeError('Command argsPromptLimit must be a number.');
 		}
